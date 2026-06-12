@@ -1,0 +1,69 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.hotsharefile.hotsharefile'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.hotsharefile.hotsharefile"
+        minSdk 29
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            def keystoreFile = file("release-key.jks")
+            
+            if (!keystoreFile.exists()) {
+                println "Generating temporary keystore at: ${keystoreFile.absolutePath}"
+                exec {
+                    commandLine 'keytool', '-genkey', '-v', 
+                        '-keystore', keystoreFile.absolutePath, 
+                        '-alias', System.getenv("KEY_ALIAS") ?: "key0", 
+                        '-keyalg', 'RSA', '-keysize', '2048', 
+                        '-validity', '10000', 
+                        '-storepass', System.getenv("KEYSTORE_PASSWORD") ?: "android", 
+                        '-keypass', System.getenv("KEY_PASSWORD") ?: "android",
+                        '-dname', 'CN=HotShareFile, OU=Dev, O=HotShare, L=Tehran, S=Tehran, C=IR'
+                }
+            }
+
+            storeFile keystoreFile
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "android"
+            keyAlias System.getenv("KEY_ALIAS") ?: "key0"
+            keyPassword System.getenv("KEY_PASSWORD") ?: "android"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true 
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.22'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22'
+        force 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    }
+}
+
+dependencies {
+    implementation 'androidx.activity:activity-ktx:1.9.0'
+    implementation 'androidx.core:core-ktx:1.13.1'
+}
