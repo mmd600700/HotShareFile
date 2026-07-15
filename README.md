@@ -1,7 +1,3 @@
-باشه، بدون Badgeها:
-
----
-
 # 🔥 HotShareFile
 
 **Easily share files between your Android phone and any device (Android, iOS, laptop, etc.) over a hotspot, with two-way file transfer.**
