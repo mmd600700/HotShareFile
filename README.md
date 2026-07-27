@@ -50,10 +50,6 @@ We welcome contributions! Here's how you can help:
 4. Push to the branch (`git push origin feature/AmazingFeature`).
 5. Open a Pull Request.
 
-## 📄 License
-
-This project is licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for details.
-
 ---
 
 **⭐️ If you find this project useful, please give it a star to help others discover it!**
