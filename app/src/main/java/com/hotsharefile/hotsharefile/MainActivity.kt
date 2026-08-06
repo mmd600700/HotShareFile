@@ -151,6 +151,9 @@ fun HotShareApp(
     onServerInit: (SimpleHttpServer) -> Unit,
     getDeviceIp: () -> String
 ) {
+    // این لیست همان لیستی است که به SimpleHttpServer داده می‌شود.
+    // چون خودِ شیء SimpleHttpServer فقط یک‌بار ساخته می‌شود (نه هر بار که این لیست تغییر کند)،
+    // تغییرات آن (add/clear) مستقیماً برای سرور در حال اجرا هم دیده می‌شود.
     val selectedFiles = remember { mutableStateListOf<Uri>().apply { addAll(initialFiles) } }
     var showingImage by remember { mutableStateOf(false) }
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -177,14 +180,21 @@ fun HotShareApp(
         }
     }
 
-    val server = remember(selectedFiles.toList()) {
-        SimpleHttpServer(context, selectedFiles.toList()).also {
+    // نکته‌ی کلیدیِ اصلاح‌شده:
+    // remember دیگر به selectedFiles.toList() وابسته نیست.
+    // یعنی با هر بار انتخاب فایل جدید، این بلاک دوباره اجرا نمی‌شود و
+    // یک SimpleHttpServer تازه با ServerSocket جدید ساخته نمی‌شود.
+    // سرور فقط یک‌بار در طول عمر این Composable ساخته و استارت می‌شود.
+    val server = remember {
+        SimpleHttpServer(context, selectedFiles).also {
             onServerInit(it)
             it.startServer()
         }
     }
 
-    DisposableEffect(server) {
+    // چون server دیگر در هر تغییر فایل عوض نمی‌شود، این effect هم فقط یک‌بار
+    // در dispose نهایی (خروج از صفحه) سرور را متوقف می‌کند - نه با هر انتخاب فایل.
+    DisposableEffect(Unit) {
         onDispose {
             server.stopServer()
         }
