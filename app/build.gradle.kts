@@ -10,10 +10,10 @@ android {
 
     defaultConfig {
         applicationId = "com.hotsharefile.hotsharefile"
-        minSdk = 24
+        minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.1"
     }
 
     signingConfigs {
