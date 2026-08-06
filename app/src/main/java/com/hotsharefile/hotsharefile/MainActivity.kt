@@ -1,5 +1,6 @@
 package com.hotsharefile.hotsharefile
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -9,6 +10,7 @@ import android.net.Network
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Parcelable
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -43,7 +45,7 @@ class MainActivity : ComponentActivity() {
 
     private var server: SimpleHttpServer? = null
 
-    override fun onCreate(savedInstanceState) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val initialFiles = mutableListOf<Uri>()
@@ -74,7 +76,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Suppress("DEPRECATION")
-    private fun <T> getParcelableExtra(intent: Intent, key: String): T? {
+    private fun <T : Parcelable> getParcelableExtra(intent: Intent, key: String): T? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra(key, Uri::class.java) as? T
         } else {
@@ -83,7 +85,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Suppress("DEPRECATION")
-    private fun <T> getParcelableArrayListExtra(intent: Intent, key: String): ArrayList<T>? {
+    private fun <T : Parcelable> getParcelableArrayListExtra(intent: Intent, key: String): ArrayList<T>? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableArrayListExtra(key, Uri::class.java) as? ArrayList<T>
         } else {
@@ -130,14 +132,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Data holder for items being downloaded (type '0')
 data class DownloadProgressItem(
     val fileName: String,
     val fileIndexStr: String,
     val percent: Int
 )
 
-// Data holder for items being uploaded (type '1')
 data class UploadProgressItem(
     val fileName: String,
     val fileIndex: String,
@@ -159,11 +159,10 @@ fun HotShareApp(
     val uploadsMap = remember { mutableStateMapOf<String, UploadProgressItem>() }
     var canClearUploads by remember { mutableStateOf(false) }
 
-    // File picker launcher
     val pickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == ComponentActivity.RESULT_OK && result.data != null) {
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
             val data = result.data
             selectedFiles.clear()
             downloadsMap.clear()
@@ -178,7 +177,6 @@ fun HotShareApp(
         }
     }
 
-    // HttpServer setup & Flow listener
     val server = remember(selectedFiles.toList()) {
         SimpleHttpServer(context, selectedFiles.toList()).also {
             onServerInit(it)
@@ -227,7 +225,6 @@ fun HotShareApp(
     val ipAddress = remember { getDeviceIp() }
     val serverUrl = "http://$ipAddress:8888/"
 
-    // Native Custom UI Layout
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -235,7 +232,6 @@ fun HotShareApp(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // IP & QR Toggle Section
         Box(
             modifier = Modifier
                 .padding(vertical = 12.dp)
@@ -268,7 +264,6 @@ fun HotShareApp(
             }
         }
 
-        // Custom Pick Files Button (No Material)
         Box(
             modifier = Modifier
                 .padding(vertical = 10.dp)
@@ -297,7 +292,6 @@ fun HotShareApp(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Selected Files Downloads Progress List
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -338,7 +332,6 @@ fun HotShareApp(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Uploads Progress List
         Box(
             modifier = Modifier
                 .weight(1f)
