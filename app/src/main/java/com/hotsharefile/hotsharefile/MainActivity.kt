@@ -227,12 +227,8 @@ fun HotShareApp(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF121212))
-             .padding(
-                top = 20.dp,  
-                bottom = 45.dp, 
-                start = 16.dp, 
-                end = 16.dp
-            ),
+            .navigationBarsPadding()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
