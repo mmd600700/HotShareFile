@@ -19,23 +19,42 @@ android {
     signingConfigs {
         create("release") {
             val keystoreFile = file("release-key.jks")
-            if (keystoreFile.exists()) {
-                storeFile = keystoreFile
-                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
-                keyAlias = System.getenv("KEY_ALIAS") ?: ""
-                keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            val storePass = System.getenv("KEYSTORE_PASSWORD") ?: "android"
+            val alias = System.getenv("KEY_ALIAS") ?: "key0"
+            val keyPass = System.getenv("KEY_PASSWORD") ?: "android"
+
+            if (!keystoreFile.exists()) {
+                println("Generating temporary keystore at: ${keystoreFile.absolutePath}")
+                project.exec {
+                    commandLine(
+                        "keytool", "-genkey", "-v",
+                        "-keystore", keystoreFile.absolutePath,
+                        "-alias", alias,
+                        "-keyalg", "RSA", "-keysize", "2048",
+                        "-validity", "10000",
+                        "-storepass", storePass,
+                        "-keypass", keyPass,
+                        "-dname", "CN=HotShareFile, OU=Dev, O=HotShare, L=Tehran, S=Tehran, C=IR"
+                    )
+                }
             }
+
+            storeFile = keystoreFile
+            storePassword = storePass
+            keyAlias = alias
+            keyPassword = keyPass
         }
     }
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
