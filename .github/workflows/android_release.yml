@@ -1,0 +1,60 @@
+name: Android Release Build & Sign
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Ensure Gradle Wrapper exists
+        run: |
+          if [ ! -f "./gradlew" ]; then
+            mkdir -p gradle/wrapper
+            curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.10.2/gradlew -o gradlew
+            curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.10.2/gradlew.bat -o gradlew.bat
+            curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.10.2/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+          fi
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Set Environment Variables
+        run: |
+          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Build Signed Release APK
+        env:
+          GRADLE_OPTS: "-Xmx2g"
+        run: ./gradlew assembleRelease
+
+      - name: Upload APK to Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: HotShareFile-Signed-APK
+          path: app/build/outputs/apk/release/app-release.apk
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/release/app-release.apk
+          generate_release_notes: true
